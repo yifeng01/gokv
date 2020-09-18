@@ -1,10 +1,10 @@
 # gokv
 kv store for memory, redis, db and file
 
-#install
+# install
 go get github.com/yifeng01/gokv
 
-#usage
+# usage
 ```
 package main
 
