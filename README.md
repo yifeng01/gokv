@@ -129,6 +129,5 @@ func kvMssql(wg *sync.WaitGroup) {
 	if found, err := store.Get(_defUserId, &val); err != nil || !found || val != 1 {
 		log.Printf("Get: err=%v, found=%v, val=%d\n", err, found, val)
 	}
-
-
+}
 ```
