@@ -2,6 +2,7 @@ package util
 
 import (
 	"errors"
+	"time"
 )
 
 // CheckKeyAndValue returns an error if k == "" or if v == nil
@@ -34,4 +35,15 @@ func CopyData(data []byte) []byte {
 	copy(result, data)
 
 	return result
+}
+
+//get cur year + month + day, such as 20200918
+const (
+	//默认时间格式
+	_defaultTimeFormat = "20060102"
+)
+
+func GetCurDay() string {
+	tmNow := time.Now()
+	return tmNow.Format(_defaultTimeFormat)
 }

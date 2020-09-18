@@ -38,6 +38,7 @@ func (s *Store) SetEx(k string, v interface{}, expires time.Duration) error {
 			Key:   k,
 			Data:  string(data),
 			Table: s.Sql.table,
+			Split: s.Sql.split,
 		}
 	} else {
 		item = &Item{
@@ -45,6 +46,7 @@ func (s *Store) SetEx(k string, v interface{}, expires time.Duration) error {
 			Data:      string(data),
 			ExpiresAt: time.Now().Add(expires),
 			Table:     s.Sql.table,
+			Split:     s.Sql.split,
 		}
 	}
 
@@ -64,6 +66,7 @@ func (s *Store) Get(k string, v interface{}) (found bool, err error) {
 
 	item := &Item{
 		Table: s.Sql.table,
+		Split: s.Sql.split,
 	}
 	found, err = s.Sql.engine.Where("id = ?", k).Get(item)
 	if err != nil || !found {
@@ -81,6 +84,7 @@ func (s *Store) Has(k string) bool {
 	item := Item{
 		Key:   k,
 		Table: s.Sql.table,
+		Split: s.Sql.split,
 	}
 	if found, err := s.Sql.engine.Get(&item); err != nil || !found {
 		return false
@@ -100,6 +104,7 @@ func (s *Store) Delete(k string) error {
 	item := Item{
 		Key:   k,
 		Table: s.Sql.table,
+		Split: s.Sql.split,
 	}
 	_, err := s.Sql.engine.Delete(&item)
 	return err
@@ -121,6 +126,7 @@ func (s *Store) GC() {
 
 	item := &Item{
 		Table: s.Sql.table,
+		Split: s.Sql.split,
 	}
 	count, err := s.Sql.engine.Where("expiresAt < ?", tm).Delete(item)
 	if err != nil {
@@ -155,12 +161,14 @@ type Options struct {
 	Codec     encoding.Codec
 	Interval  time.Duration
 	TableName string
+	Split     bool
 }
 
 var DefaultOptions = Options{
 	Codec:     encoding.JSON,
 	Interval:  30 * time.Second,
 	TableName: "gokv_test",
+	Split:     false,
 }
 
 // New create a mssql connection.
@@ -177,7 +185,7 @@ func New(options Options) *Store {
 		options.TableName = DefaultOptions.TableName
 	}
 
-	sql := newSqlSvr(options.User, options.Pwd, options.Host, options.Db, options.TableName)
+	sql := newSqlSvr(options.User, options.Pwd, options.Host, options.Db, options.TableName, options.Split)
 	if sql == nil {
 		return nil
 	}
@@ -199,6 +207,7 @@ type Item struct {
 	ExpiresAt time.Time `xorm:"datetime expiresAt"`
 	CTime     time.Time `xorm:"updated ctime"`
 	Table     string    `xorm:"-"`
+	Split     bool      `xorm:"-"`
 }
 
 //Helper method to check if an item is expired.
@@ -212,5 +221,9 @@ func (i *Item) IsExpired() bool {
 }
 
 func (i *Item) TableName() string {
-	return i.Table
+	tbn := i.Table
+	if i.Split {
+		tbn += util.GetCurDay()
+	}
+	return tbn
 }

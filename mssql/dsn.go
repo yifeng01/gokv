@@ -17,12 +17,13 @@ const (
 type SqlSvr struct {
 	engine *xorm.Engine
 	table  string
+	split  bool
 }
 
 func (s *SqlSvr) Close() {
 }
 
-func newSqlSvr(user, pwd, host, db, tb string) *SqlSvr {
+func newSqlSvr(user, pwd, host, db, tb string, split bool) *SqlSvr {
 	dsn := getMssqlDsn(user, pwd, host, db)
 	engine, err := xorm.NewEngine(_defMSSqlDriverName, dsn)
 	if err != nil {
@@ -41,6 +42,7 @@ func newSqlSvr(user, pwd, host, db, tb string) *SqlSvr {
 	return &SqlSvr{
 		engine: engine,
 		table:  tb,
+		split:  split,
 	}
 }
 

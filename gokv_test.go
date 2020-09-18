@@ -20,7 +20,7 @@ const (
 	_defMssqlUser    = "sa"
 	_defMssqlPwd     = "123456"
 	_defMssqlDb      = "LogFlow"
-	_defMssqlTb      = "t_test"
+	_defMssqlTb      = "t_gokv_test"
 )
 
 func TestGokv_syncMap(t *testing.T) {
