@@ -129,5 +129,29 @@ func kvMssql(wg *sync.WaitGroup) {
 	if found, err := store.Get(_defUserId, &val); err != nil || !found || val != 1 {
 		log.Printf("Get: err=%v, found=%v, val=%d\n", err, found, val)
 	}
+	wg.Done()
+}
+
+func kvFile(wg *sync.WaitGroup) {
+	store := file.New(file.Options{
+		Directory: "kvs",
+	})
+	err := store.SetEx(_defUserId, 1, 5*time.Second)
+	if err != nil {
+		log.Printf("SetEx: err=%v\n", err)
+	}
+
+	var val int
+	if found, err := store.Get(_defUserId, &val); err != nil || !found || val != 1 {
+		log.Printf("Get: err=%v, found=%v, val=%d\n", err, found, val)
+	}
+
+	time.Sleep(31 * time.Second)
+
+	if found, err := store.Get(_defUserId, &val); err != nil || found {
+		log.Printf("Get: after expire, err=%v, found=%v\n", err, found)
+	}
+
+	wg.Done()
 }
 ```
