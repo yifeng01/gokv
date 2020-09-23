@@ -13,14 +13,15 @@ import (
 
 // Notice: when test you should change you own redis and mssql addr.
 const (
-	_defUserId       = "22231028"
-	_defRedisAddress = "127.0.0.1:10000"
-	_defRedisPwd     = "123456"
-	_defMssqlAddr    = "127.0.0.1:1433"
-	_defMssqlUser    = "sa"
-	_defMssqlPwd     = "123456"
-	_defMssqlDb      = "LogFlow"
-	_defMssqlTb      = "t_gokv_test"
+	_defUserId         = "22231028"
+	_defRedisAddress   = "127.0.0.1:10000"
+	_defRedisPwd       = "123456"
+	_defRedisKeyPrefix = "gokv_test"
+	_defMssqlAddr      = "127.0.0.1:1433"
+	_defMssqlUser      = "sa"
+	_defMssqlPwd       = "123456"
+	_defMssqlDb        = "LogFlow"
+	_defMssqlTb        = "t_gokv_test"
 )
 
 func TestGokv_syncMap(t *testing.T) {
@@ -63,8 +64,10 @@ func TestGokv_map(t *testing.T) {
 
 func TestGokv_redis(t *testing.T) {
 	store := redis.New(redis.Options{
-		Address:  _defRedisAddress,
-		Password: _defRedisPwd})
+		Address:   _defRedisAddress,
+		Password:  _defRedisPwd,
+		KeyPrefix: _defRedisKeyPrefix,
+	})
 	if store == nil {
 		t.Errorf("New: connect redis failed...")
 	}

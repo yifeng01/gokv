@@ -11,9 +11,10 @@ import (
 
 // Store is a io.Store implementation for Redis.
 type Store struct {
-	c     *redis.Client
-	codec encoding.Codec
-	keyFn KeyFunc
+	c         *redis.Client
+	codec     encoding.Codec
+	keyFn     KeyFunc
+	keyPrefix string
 }
 
 // Set stores the given value for the given key.
@@ -38,7 +39,7 @@ func (c *Store) SetEx(k string, v interface{}, expires time.Duration) error {
 		return err
 	}
 
-	err = c.c.Set(c.keyFn(k), string(data), expires).Err()
+	err = c.c.Set(c.keyFn(c.keyPrefix, k), string(data), expires).Err()
 	if err != nil {
 		return err
 	}
@@ -56,7 +57,7 @@ func (c *Store) Get(k string, v interface{}) (found bool, err error) {
 		return false, err
 	}
 
-	dataString, err := c.c.Get(c.keyFn(k)).Result()
+	dataString, err := c.c.Get(c.keyFn(c.keyPrefix, k)).Result()
 	if err != nil {
 		if err == redis.Nil {
 			return false, nil
@@ -73,7 +74,7 @@ func (c *Store) Has(k string) bool {
 		return false
 	}
 
-	_, err := c.c.Get(c.keyFn(k)).Result()
+	_, err := c.c.Get(c.keyFn(c.keyPrefix, k)).Result()
 	if err != nil {
 		return false
 	}
@@ -88,7 +89,7 @@ func (c *Store) Delete(k string) error {
 		return err
 	}
 
-	_, err := c.c.Del(c.keyFn(k)).Result()
+	_, err := c.c.Del(c.keyFn(c.keyPrefix, k)).Result()
 	return err
 }
 
@@ -114,13 +115,16 @@ type Options struct {
 	Codec encoding.Codec
 	// key fn
 	KeyFn KeyFunc
+	// key prefix
+	KeyPrefix string
 }
 
 // DefaultOptions is an Options object with default values.
 // Address: "localhost:6379", Password: "", DB: 0, Codec: encoding.JSON
 var DefaultOptions = Options{
-	Address: "localhost:6379",
-	Codec:   encoding.JSON,
+	Address:   "localhost:6379",
+	Codec:     encoding.JSON,
+	KeyPrefix: "gokv",
 	// No need to set Password or DB because their Go zero values are fine for that.
 }
 
@@ -138,6 +142,9 @@ func New(options Options) *Store {
 	if options.KeyFn == nil {
 		options.KeyFn = DefaultKeyFunc
 	}
+	if options.KeyPrefix == "" {
+		options.KeyPrefix = DefaultOptions.KeyPrefix
+	}
 
 	client := redis.NewClient(&redis.Options{
 		Addr:     options.Address,
@@ -151,9 +158,10 @@ func New(options Options) *Store {
 	}
 
 	s := &Store{
-		c:     client,
-		codec: options.Codec,
-		keyFn: options.KeyFn,
+		c:         client,
+		codec:     options.Codec,
+		keyFn:     options.KeyFn,
+		keyPrefix: options.KeyPrefix,
 	}
 
 	return s
@@ -161,9 +169,9 @@ func New(options Options) *Store {
 
 // DefaultKeyFunc is the default implementation of cache keys
 // All it does is to preprend "gokv:" to the key sent in by client code
-func DefaultKeyFunc(s string) string {
-	return "gokv:" + s
+func DefaultKeyFunc(prefix, s string) string {
+	return prefix + ":" + s
 }
 
 // KeyFunc defines a transformer for cache keys
-type KeyFunc func(s string) string
+type KeyFunc func(prefix, s string) string
