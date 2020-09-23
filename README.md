@@ -91,8 +91,8 @@ func kvGomap(wg *sync.WaitGroup) {
 
 func kvRedis(wg *sync.WaitGroup) {
 	store := redis.New(redis.Options{
-		Address:  _defRedisAddress,
-		Password: _defRedisPwd,
+		Address:   _defRedisAddress,
+		Password:  _defRedisPwd,
 		KeyPrefix: _defRedisKeyPrefix,
 	})
 	err := store.SetEx(_defUserId, 1, 5*time.Second)
