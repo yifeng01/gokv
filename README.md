@@ -22,14 +22,15 @@ import (
 
 //Notice: when test you should change you own redis and mssql address.
 const (
-	_defUserId       = "22231028"
-	_defRedisAddress = "127.0.0.1:10000"
-	_defRedisPwd     = "123456"
-	_defMssqlAddr    = "127.0.0.1:1433"
-	_defMssqlUser    = "sa"
-	_defMssqlPwd     = "123456"
-	_defMssqlDb      = "LogFlow"
-	_defMssqlTb      = "t_gokv_test"
+	_defUserId         = "22231028"
+	_defRedisAddress   = "127.0.0.1:10000"
+	_defRedisPwd       = "123456"
+	_defRedisKeyPrefix = "gokv_test"
+	_defMssqlAddr      = "127.0.0.1:1433"
+	_defMssqlUser      = "sa"
+	_defMssqlPwd       = "123456"
+	_defMssqlDb        = "LogFlow"
+	_defMssqlTb        = "t_gokv_test"
 )
 
 func main() {
@@ -92,6 +93,7 @@ func kvRedis(wg *sync.WaitGroup) {
 	store := redis.New(redis.Options{
 		Address:  _defRedisAddress,
 		Password: _defRedisPwd,
+		KeyPrefix: _defRedisKeyPrefix,
 	})
 	err := store.SetEx(_defUserId, 1, 5*time.Second)
 	if err != nil {
